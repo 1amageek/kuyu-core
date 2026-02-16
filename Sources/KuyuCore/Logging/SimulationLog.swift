@@ -7,6 +7,7 @@ public struct SimulationLog: Sendable, Codable, Equatable {
     public let events: [WorldStepLog]
     public let failureReason: FailureReason?
     public let failureTime: Double?
+    public let observability: ObservabilityLogBundle?
 
     public init(
         scenarioId: ScenarioID,
@@ -16,7 +17,8 @@ public struct SimulationLog: Sendable, Codable, Equatable {
         configHash: String,
         events: [WorldStepLog],
         failureReason: FailureReason? = nil,
-        failureTime: Double? = nil
+        failureTime: Double? = nil,
+        observability: ObservabilityLogBundle? = nil
     ) {
         self.scenarioId = scenarioId
         self.seed = seed
@@ -26,5 +28,6 @@ public struct SimulationLog: Sendable, Codable, Equatable {
         self.events = events
         self.failureReason = failureReason
         self.failureTime = failureTime
+        self.observability = observability
     }
 }
