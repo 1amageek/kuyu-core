@@ -1,6 +1,6 @@
 import Foundation
 
-struct ConfigHash {
+public struct ConfigHash {
     public enum ValidationError: Error, Equatable {
         case encodingFailed
     }
