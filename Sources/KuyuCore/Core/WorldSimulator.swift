@@ -39,10 +39,9 @@ public struct WorldSimulator<
         self.lastCutObservabilityEvents = CutObservabilityEvents()
     }
 
-    @MainActor
     public mutating func run(
         control: SimulationControl? = nil,
-        telemetry: ((WorldStepLog) -> Void)? = nil,
+        telemetry: WorldStepTelemetry? = nil,
         failureCheck: ((WorldStepLog) -> FailureEvent?)? = nil
     ) async throws -> SimulationLog {
         let dt = config.scenario.timeStep.delta
