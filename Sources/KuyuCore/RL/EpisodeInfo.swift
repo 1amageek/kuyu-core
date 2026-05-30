@@ -2,7 +2,7 @@ public struct EpisodeInfo: Sendable, Codable, Equatable {
     public let scenarioId: ScenarioID
     public let seed: ScenarioSeed
     public let configHash: String
-    public let descriptorId: String?
+    public let robotManifestID: String?
     public let policyId: String?
     public let rewardDescriptor: RewardDescriptor?
     public let stepCount: Int
@@ -15,7 +15,7 @@ public struct EpisodeInfo: Sendable, Codable, Equatable {
         scenarioId: ScenarioID,
         seed: ScenarioSeed,
         configHash: String,
-        descriptorId: String? = nil,
+        robotManifestID: String? = nil,
         policyId: String? = nil,
         rewardDescriptor: RewardDescriptor? = nil,
         stepCount: Int,
@@ -27,7 +27,7 @@ public struct EpisodeInfo: Sendable, Codable, Equatable {
         self.scenarioId = scenarioId
         self.seed = seed
         self.configHash = configHash
-        self.descriptorId = descriptorId
+        self.robotManifestID = robotManifestID
         self.policyId = policyId
         self.rewardDescriptor = rewardDescriptor
         self.stepCount = stepCount

@@ -21,7 +21,7 @@ import Testing
         scenarioId: try ScenarioID("rl-contract"),
         seed: ScenarioSeed(1),
         configHash: "hash",
-        descriptorId: nil,
+        robotManifestID: nil,
         policyId: "test",
         stepCount: 1,
         rewardSum: 0,
