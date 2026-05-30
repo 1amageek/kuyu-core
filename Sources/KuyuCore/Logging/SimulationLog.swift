@@ -8,6 +8,9 @@ public struct SimulationLog: Sendable, Codable, Equatable {
     public let failureReason: FailureReason?
     public let failureTime: Double?
     public let observability: ObservabilityLogBundle?
+    /// Scheduled swap/HF stress events for this run (A1 "Event schedule + seed" log).
+    /// Optional for backward compatibility with logs written before scheduling.
+    public let eventSchedule: StressEventSchedule?
 
     public init(
         scenarioId: ScenarioID,
@@ -18,7 +21,8 @@ public struct SimulationLog: Sendable, Codable, Equatable {
         events: [WorldStepLog],
         failureReason: FailureReason? = nil,
         failureTime: Double? = nil,
-        observability: ObservabilityLogBundle? = nil
+        observability: ObservabilityLogBundle? = nil,
+        eventSchedule: StressEventSchedule? = nil
     ) {
         self.scenarioId = scenarioId
         self.seed = seed
@@ -29,5 +33,22 @@ public struct SimulationLog: Sendable, Codable, Equatable {
         self.failureReason = failureReason
         self.failureTime = failureTime
         self.observability = observability
+        self.eventSchedule = eventSchedule
+    }
+
+    /// Returns a copy with the stress-event schedule attached.
+    public func withEventSchedule(_ schedule: StressEventSchedule) -> SimulationLog {
+        SimulationLog(
+            scenarioId: scenarioId,
+            seed: seed,
+            timeStep: timeStep,
+            determinism: determinism,
+            configHash: configHash,
+            events: events,
+            failureReason: failureReason,
+            failureTime: failureTime,
+            observability: observability,
+            eventSchedule: schedule
+        )
     }
 }
