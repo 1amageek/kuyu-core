@@ -157,6 +157,32 @@ import Testing
     }
 }
 
+@Test func worldModelAdapterDefaultUncertaintyThresholdAcceptsNeutralUncertainty() throws {
+    let step = try makeStep(from: makeStepLog())
+    let prediction = try WorldModelPrediction(step: step, uncertainty: 0.5)
+
+    let accepted = try PhysicsOnlyWorldModelAdapter().accept(
+        prediction: prediction,
+        reference: step,
+        configuration: WorldModelAdapterConfiguration()
+    )
+
+    #expect(accepted == step)
+}
+
+@Test func worldModelAdapterDefaultUncertaintyThresholdRejectsHighUncertainty() throws {
+    let step = try makeStep(from: makeStepLog())
+    let prediction = try WorldModelPrediction(step: step, uncertainty: 0.51)
+
+    #expect(throws: WorldModelAdapterRejection.uncertaintyExceeded(actual: 0.51, limit: 0.5)) {
+        try PhysicsOnlyWorldModelAdapter().accept(
+            prediction: prediction,
+            reference: step,
+            configuration: WorldModelAdapterConfiguration()
+        )
+    }
+}
+
 private func makeStepLog() throws -> WorldStepLog {
     try makeStepLog(sensorZ: nil)
 }

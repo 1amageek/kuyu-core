@@ -48,6 +48,36 @@ public struct FusedEnvironment<A: AnalyticalModel, W: WorldModelProtocol, S: Sen
         return FusedState(physics: physicsState, worldModelOutput: wmOutput)
     }
 
+    /// Predict future fused states by advancing analytical physics at every step.
+    ///
+    /// This is the physics-aware imagination path: the world model receives an
+    /// analytical prediction for each future action instead of rolling out by
+    /// accumulating residuals alone.
+    public mutating func predictFuture(
+        actions: [[ActuatorValue]],
+        dt: TimeInterval,
+        startTime: WorldTime
+    ) throws -> [FusedState<A.State>] {
+        var time = startTime
+        var states: [FusedState<A.State>] = []
+        states.reserveCapacity(actions.count)
+
+        for action in actions {
+            time = try time.advanced(by: dt)
+            let physicsState = try analyticalModel.predict(action: action, dt: dt)
+            let observations = try sensorField.sample(time: time)
+            let output = try worldModel.infer(
+                physicsPrediction: physicsState,
+                sensorObservations: observations,
+                action: action,
+                dt: dt
+            )
+            states.append(FusedState(physics: physicsState, worldModelOutput: output))
+        }
+
+        return states
+    }
+
     /// Reset both analytical model and world model.
     public mutating func reset() throws {
         try analyticalModel.reset()

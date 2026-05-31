@@ -17,7 +17,8 @@ public struct WorldModelOutput: Sendable, Equatable {
     /// Dimension count is determined by the WorldModel design.
     public let extensions: [Float]
 
-    /// Per-dimension confidence estimates for residual + extensions.
+    /// Per-dimension uncertainty estimates for residual + extensions.
+    /// 0 means low uncertainty and 1 means high uncertainty.
     public let uncertainty: [Float]
 
     public init(residual: [Float], extensions: [Float], uncertainty: [Float]) throws {

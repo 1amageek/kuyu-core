@@ -23,6 +23,55 @@ struct TestAnalyticalState: AnalyticalState {
     }
 }
 
+struct TestAnalyticalModel: AnalyticalModel {
+    var currentState: TestAnalyticalState
+
+    mutating func predict(action: [ActuatorValue], dt: Double) throws -> TestAnalyticalState {
+        let delta = Float(action.first?.value ?? 0)
+        currentState = TestAnalyticalState(values: currentState.values.map { $0 + delta })
+        return currentState
+    }
+
+    mutating func reset() throws {
+        currentState = TestAnalyticalState(values: [0, 0])
+    }
+}
+
+struct EmptySensorField: SensorField {
+    var sampledTimes: [WorldTime] = []
+
+    mutating func sample(time: WorldTime) throws -> [ChannelSample] {
+        sampledTimes.append(time)
+        return []
+    }
+}
+
+struct RecordingWorldModel: WorldModelProtocol {
+    var physicsInputs: [[Float]] = []
+
+    mutating func infer(
+        physicsPrediction: some AnalyticalState,
+        sensorObservations: [ChannelSample],
+        action: [ActuatorValue],
+        dt: Double
+    ) throws -> WorldModelOutput {
+        let values = physicsPrediction.toArray()
+        physicsInputs.append(values)
+        return .identity(physicsDimensions: values.count)
+    }
+
+    mutating func predictFuture(
+        steps: Int,
+        actions: [[ActuatorValue]]
+    ) throws -> [WorldModelOutput] {
+        (0..<steps).map { _ in .identity(physicsDimensions: 2) }
+    }
+
+    mutating func reset() throws {
+        physicsInputs.removeAll()
+    }
+}
+
 // MARK: - WorldModelOutput Tests
 
 @Test func worldModelOutputIdentityHasZeroResidual() {
@@ -75,6 +124,28 @@ struct TestAnalyticalState: AnalyticalState {
     #expect(throws: FusedState<TestAnalyticalState>.FusedStateError.self) {
         try fused.correctedState()
     }
+}
+
+@Test func fusedEnvironmentPredictFutureAdvancesAnalyticalPhysicsPerStep() throws {
+    var environment = FusedEnvironment(
+        analyticalModel: TestAnalyticalModel(currentState: TestAnalyticalState(values: [0, 10])),
+        worldModel: RecordingWorldModel(),
+        sensorField: EmptySensorField()
+    )
+    let actions = [
+        [try ActuatorValue(index: ActuatorIndex(0), value: 1)],
+        [try ActuatorValue(index: ActuatorIndex(0), value: 2)],
+    ]
+
+    let states = try environment.predictFuture(
+        actions: actions,
+        dt: 0.1,
+        startTime: try WorldTime(stepIndex: 0, time: 0)
+    )
+
+    #expect(states.map { $0.physics.toArray() } == [[1, 11], [3, 13]])
+    #expect(environment.worldModel.physicsInputs == [[1, 11], [3, 13]])
+    #expect(environment.sensorField.sampledTimes.map(\.stepIndex) == [1, 2])
 }
 
 @Test func worldModelOutputRejectsNonFiniteResidual() {

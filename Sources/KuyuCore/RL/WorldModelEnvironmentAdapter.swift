@@ -4,7 +4,7 @@ public struct WorldModelAdapterConfiguration: Sendable, Codable, Equatable {
 
     public init(
         residualThreshold: Double = 1e-9,
-        uncertaintyThreshold: Double = 0.0
+        uncertaintyThreshold: Double = 0.5
     ) {
         self.residualThreshold = residualThreshold
         self.uncertaintyThreshold = uncertaintyThreshold
