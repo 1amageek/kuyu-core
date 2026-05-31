@@ -30,7 +30,7 @@ public struct IdentityWorldModel: PhysicsAwareWorldModelProtocol {
         (0..<steps).map { _ in .identity(physicsDimensions: physicsDimensions) }
     }
 
-    public mutating func predictFuture(
+    public func predictFuture(
         physicsPredictions: [[Float]],
         actions: [[ActuatorValue]],
         dt: TimeInterval

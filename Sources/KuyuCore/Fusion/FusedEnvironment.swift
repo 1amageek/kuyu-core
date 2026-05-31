@@ -75,7 +75,6 @@ extension FusedEnvironment where W: PhysicsAwareWorldModelProtocol {
             physicsStates.append(try analyticalModel.predict(action: action, dt: dt))
         }
 
-        var worldModel = self.worldModel
         let outputs = try worldModel.predictFuture(
             physicsPredictions: physicsStates.map { $0.toArray() },
             actions: actions,

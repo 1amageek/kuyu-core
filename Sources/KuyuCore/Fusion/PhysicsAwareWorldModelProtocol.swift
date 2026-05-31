@@ -7,7 +7,7 @@ public protocol PhysicsAwareWorldModelProtocol: WorldModelProtocol {
     /// Implementations must use prior/imagination dynamics and must not consume
     /// future sensor observations. `physicsPredictions` and `actions` describe
     /// the same horizon and must have identical counts.
-    mutating func predictFuture(
+    func predictFuture(
         physicsPredictions: [[Float]],
         actions: [[ActuatorValue]],
         dt: TimeInterval

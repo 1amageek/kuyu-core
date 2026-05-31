@@ -67,7 +67,7 @@ struct RecordingWorldModel: PhysicsAwareWorldModelProtocol {
         (0..<steps).map { _ in .identity(physicsDimensions: 2) }
     }
 
-    mutating func predictFuture(
+    func predictFuture(
         physicsPredictions: [[Float]],
         actions: [[ActuatorValue]],
         dt: Double
