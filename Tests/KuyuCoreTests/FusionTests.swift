@@ -46,7 +46,7 @@ struct EmptySensorField: SensorField {
     }
 }
 
-struct RecordingWorldModel: WorldModelProtocol {
+struct RecordingWorldModel: PhysicsAwareWorldModelProtocol {
     var physicsInputs: [[Float]] = []
 
     mutating func infer(
@@ -65,6 +65,16 @@ struct RecordingWorldModel: WorldModelProtocol {
         actions: [[ActuatorValue]]
     ) throws -> [WorldModelOutput] {
         (0..<steps).map { _ in .identity(physicsDimensions: 2) }
+    }
+
+    mutating func predictFuture(
+        physicsPredictions: [[Float]],
+        actions: [[ActuatorValue]],
+        dt: Double
+    ) throws -> [WorldModelOutput] {
+        try physicsPredictions.map { values in
+            try WorldModelOutput(residual: values, extensions: [], uncertainty: [])
+        }
     }
 
     mutating func reset() throws {
@@ -126,8 +136,8 @@ struct RecordingWorldModel: WorldModelProtocol {
     }
 }
 
-@Test func fusedEnvironmentPredictFutureAdvancesAnalyticalPhysicsPerStep() throws {
-    var environment = FusedEnvironment(
+@Test func fusedEnvironmentPredictFutureUsesLocalPhysicsPriorWithoutSamplingSensors() throws {
+    let environment = FusedEnvironment(
         analyticalModel: TestAnalyticalModel(currentState: TestAnalyticalState(values: [0, 10])),
         worldModel: RecordingWorldModel(),
         sensorField: EmptySensorField()
@@ -144,8 +154,9 @@ struct RecordingWorldModel: WorldModelProtocol {
     )
 
     #expect(states.map { $0.physics.toArray() } == [[1, 11], [3, 13]])
-    #expect(environment.worldModel.physicsInputs == [[1, 11], [3, 13]])
-    #expect(environment.sensorField.sampledTimes.map(\.stepIndex) == [1, 2])
+    #expect(states.map { $0.worldModelOutput.residual } == [[1, 11], [3, 13]])
+    #expect(environment.analyticalModel.currentState.toArray() == [0, 10])
+    #expect(environment.sensorField.sampledTimes.isEmpty)
 }
 
 @Test func worldModelOutputRejectsNonFiniteResidual() {
@@ -188,4 +199,17 @@ struct RecordingWorldModel: WorldModelProtocol {
         #expect(output.residual == Array(repeating: Float(0), count: 4))
         #expect(output.extensions.isEmpty)
     }
+}
+
+@Test func identityWorldModelPhysicsAwarePredictFutureMatchesPhysicsDimensions() throws {
+    var model = IdentityWorldModel(physicsDimensions: 4)
+
+    let outputs = try model.predictFuture(
+        physicsPredictions: [[1, 2], [3, 4, 5]],
+        actions: [[], []],
+        dt: 0.01
+    )
+
+    #expect(outputs.map { $0.residual.count } == [2, 3])
+    #expect(outputs.allSatisfy { $0.residual.allSatisfy { $0 == 0 } })
 }

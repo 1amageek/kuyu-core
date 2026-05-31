@@ -12,7 +12,10 @@ public protocol WorldModelProtocol: Sendable {
         dt: TimeInterval
     ) throws -> WorldModelOutput
 
-    /// Predict future steps for imagination-based RL.
+    /// Predict future steps for model-only imagination.
+    ///
+    /// This fallback has no analytical physics sequence. Physics-aware callers
+    /// should prefer `PhysicsAwareWorldModelProtocol.predictFuture`.
     mutating func predictFuture(
         steps: Int,
         actions: [[ActuatorValue]]
